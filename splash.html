@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carregando</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at top, #18212d 0%, #06070b 70%);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #f4f4f5;
+        -webkit-app-region: drag;
+      }
+
+      .card {
+        width: min(320px, 78vw);
+        aspect-ratio: 1 / 1;
+        border-radius: 28px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: rgba(12, 15, 20, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(16px);
+      }
+
+      img {
+        width: 160px;
+        height: 160px;
+        object-fit: contain;
+      }
+
+      .label {
+        font-size: 14px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        opacity: 0.72;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="assets/logo.svg" alt="Logo minimalista" />
+      <div class="label">Carregando aplicação…</div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+{
+  "name": "rover-client",
+  "version": "1.0.5",
+  "description": "Rover Client: cliente Electron que carrega um app remoto e dá acesso ao sistema local para abrir o jogo",
+  "author": "Sycorax",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-icon": "node scripts/generate-icon.js",
+    "dist": "electron-builder --win nsis",
+    "publish": "electron-builder --publish always",
+    "release": "node scripts/bump-and-tag.js"
+  },
+  "dependencies": {
+    "electron-log": "^5.4.4",
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.1.0",
+    "electron": "^31.7.7",
+    "electron-builder": "^24.9.0",
+    "png-to-ico": "^1.0.0"
+  },
+  "build": {
+    "appId": "com.sycorax.roverclient",
+    "productName": "Rover Client",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/n.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "RoverClient-Setup-${version}.exe",
+      "installerIcon": "build/n.ico",
+      "uninstallerIcon": "build/n.ico",
+      "installerHeaderIcon": "build/n.ico"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "loirinhodid",
+        "repo": "client",
+        "releaseType": "draft"
+      }
+    ]
+  }
+}
