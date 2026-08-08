@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parademais configurações locais</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1115;
+      color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .container {
+      padding: 20px;
+    }
+    h1 {
+      margin: 0 0 18px;
+      font-size: 20px;
+      letter-spacing: 0.02em;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+    }
+    .row label {
+      font-size: 14px;
+      line-height: 1.4;
+      max-width: 70%;
+    }
+    .path-row {
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      word-break: break-all;
+    }
+    .path-value {
+      font-size: 12px;
+      color: #d1d5db;
+      line-height: 1.5;
+    }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #111827;
+      background: #d1d5db;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #e5e7eb;
+    }
+    .toggle {
+      width: 50px;
+      height: 28px;
+      position: relative;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #4b5563;
+      border-radius: 34px;
+      transition: background-color 0.25s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.25s;
+    }
+    input:checked + .slider {
+      background-color: #10b981;
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+    .hint {
+      color: #9ca3af;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      text-align: right;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Parademais configurações locais</h1>
+
+    <div class="row">
+      <div>
+        <label for="autoLaunch">Iniciar com o Windows</label>
+        <div class="hint">Ative para abrir o app automaticamente ao entrar no Windows.</div>
+      </div>
+      <label class="toggle">
+        <input id="autoLaunch" type="checkbox" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="installPath">Instalação do app</label>
+        <div class="hint">Este é o caminho do executável usado pelo instalador e pelo autoupdate.</div>
+      </div>
+      <button id="openInstallFolder">Abrir pasta</button>
+    </div>
+
+    <div class="path-row">
+      <div id="installPathValue" class="path-value">Carregando caminho...</div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="configPath">Configurações locais</label>
+        <div class="hint">Aqui ficam os dados salvos, como o caminho do jogo e a opção de inicializar com o Windows.</div>
+      </div>
+      <button id="openConfigFolder">Abrir pasta</button>
+    </div>
+
+    <div class="path-row">
+      <div id="configPathValue" class="path-value">Carregando caminho...</div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Recarregar informações</label>
+        <div class="hint">Atualiza os caminhos exibidos sem precisar fechar o app.</div>
+      </div>
+      <button id="refreshPath">Recarregar</button>
+    </div>
+
+    <div class="footer">
+      O app instalado fica em um local padrão do Windows. Use os botões para abrir as pastas diretamente.
+    </div>
+  </div>
+
+  <script>
+    const autoLaunchToggle = document.getElementById('autoLaunch');
+    const refreshPath = document.getElementById('refreshPath');
+    const openInstallFolder = document.getElementById('openInstallFolder');
+    const openConfigFolder = document.getElementById('openConfigFolder');
+    const installPathValue = document.getElementById('installPathValue');
+    const configPathValue = document.getElementById('configPathValue');
+
+    async function loadSettings() {
+      const enabled = await window.electronAPI.getAutoLaunch();
+      autoLaunchToggle.checked = enabled;
+
+      installPathValue.textContent = await window.electronAPI.getInstallPath();
+      configPathValue.textContent = await window.electronAPI.getConfigPath();
+    }
+
+    autoLaunchToggle.addEventListener('change', async () => {
+      await window.electronAPI.setAutoLaunch(autoLaunchToggle.checked);
+    });
+
+    refreshPath.addEventListener('click', async () => {
+      await loadSettings();
+      alert('Informações atualizadas.');
+    });
+
+    openInstallFolder.addEventListener('click', async () => {
+      await window.electronAPI.openInstallFolder();
+    });
+
+    openConfigFolder.addEventListener('click', async () => {
+      await window.electronAPI.openConfigFolder();
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>
