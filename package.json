@@ -1,6 +1,6 @@
 {
   "name": "rover-client",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Rover Client: cliente Electron que carrega um app remoto e dá acesso ao sistema local para abrir o jogo",
   "author": "Sycorax",
   "main": "main.js",
