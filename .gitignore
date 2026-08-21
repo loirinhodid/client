@@ -1,8 +1,7 @@
 # Node modules
 node_modules/
 
-# Lockfiles
-package-lock.json
+# Other lockfiles
 pnpm-lock.yaml
 yarn.lock
 

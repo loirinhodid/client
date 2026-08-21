@@ -210,6 +210,13 @@ function createWindow() {
     }
   });
 
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && tray && lerConfig().minimizeToTray === true) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
