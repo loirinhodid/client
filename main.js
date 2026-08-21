@@ -10,6 +10,7 @@ const URL_DO_APP = 'https://important-nexus-launch-pad.base44.app';
 let mainWindow = null;
 let settingsWindow = null;
 let tray = null;
+let isQuitting = false;
 
 function setAutoLaunch(enabled) {
   app.setLoginItemSettings({
@@ -105,6 +106,16 @@ function createTray() {
       click: () => createSettingsWindow()
     },
     {
+      label: 'Minimizar para a bandeja ao fechar',
+      type: 'checkbox',
+      checked: lerConfig().minimizeToTray === true,
+      click: (menuItem) => {
+        const config = lerConfig();
+        config.minimizeToTray = menuItem.checked;
+        salvarConfig(config);
+      }
+    },
+    {
       label: 'Abrir pasta da instalação',
       click: () => shell.openPath(path.dirname(process.execPath))
     },
@@ -113,7 +124,13 @@ function createTray() {
       click: () => shell.openPath(path.dirname(configPath))
     },
     { type: 'separator' },
-    { role: 'quit' }
+    {
+      label: 'Sair',
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      }
+    }
   ]);
   tray.setContextMenu(contextMenu);
 }
@@ -171,6 +188,27 @@ function createWindow() {
 
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL(URL_DO_APP);
+  // After the page finishes loading, attempt to remove the edit badge if present
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.executeJavaScript(`
+      (function () {
+        const closeBtn = document.getElementById('badge-close');
+        if (closeBtn) {
+          closeBtn.click();
+        } else {
+          const badge = document.getElementById('base44-edit-badge');
+          if (badge) badge.style.display = 'none';
+        }
+      })();
+    `).catch(err => console.error('Erro ao remover badge:', err));
+  });
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && tray && lerConfig().minimizeToTray === true) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -244,6 +282,10 @@ app.whenReady().then(() => {
   // faz uma verificação imediata e inicia o agendador com backoff
   autoUpdater.checkForUpdatesAndNotify();
   startAutoUpdateScheduler();
+});
+
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
 app.on('window-all-closed', () => {
@@ -363,4 +405,3 @@ ipcMain.on('janela-maximizar', () => {
 ipcMain.on('janela-fechar', () => {
   if (mainWindow) mainWindow.close();
 });
-
