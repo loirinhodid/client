@@ -203,13 +203,9 @@ function createWindow() {
     `).catch(err => console.error('Erro ao remover badge:', err));
   });
 
-  mainWindow.on('close', (event) => {
-    if (!isQuitting && tray && lerConfig().minimizeToTray === true) {
-      event.preventDefault();
-      mainWindow.hide();
-    }
-  });
-
+  // Fechar respeita a opção "Minimizar para a bandeja ao fechar":
+  //   opção ON  -> esconde na bandeja (não fecha)
+  //   opção OFF -> fecha normalmente (app encerra)
   mainWindow.on('close', (event) => {
     if (!isQuitting && tray && lerConfig().minimizeToTray === true) {
       event.preventDefault();
@@ -411,4 +407,15 @@ ipcMain.on('janela-maximizar', () => {
 
 ipcMain.on('janela-fechar', () => {
   if (mainWindow) mainWindow.close();
+});
+
+// Esconde a janela direto na bandeja (botão "Ocultar na Bandeja" do menu).
+ipcMain.on('janela-esconder-bandeja', () => {
+  if (mainWindow) mainWindow.hide();
+});
+
+// Encerra o app de fato (botão "Sair do Launcher").
+ipcMain.on('janela-sair', () => {
+  isQuitting = true;
+  app.quit();
 });
