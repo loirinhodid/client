@@ -133,6 +133,17 @@
 
     <div class="row">
       <div>
+        <label for="startMinimized">Iniciar minimizado</label>
+        <div class="hint">Abre o Rover em segundo plano para reduzir o uso de recursos até você precisar dele.</div>
+      </div>
+      <label class="toggle">
+        <input id="startMinimized" type="checkbox" />
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <div>
         <label for="installPath">Instalação do app</label>
         <div class="hint">Este é o caminho do executável usado pelo instalador e pelo autoupdate.</div>
       </div>
@@ -170,6 +181,7 @@
 
   <script>
     const autoLaunchToggle = document.getElementById('autoLaunch');
+    const startMinimizedToggle = document.getElementById('startMinimized');
     const refreshPath = document.getElementById('refreshPath');
     const openInstallFolder = document.getElementById('openInstallFolder');
     const openConfigFolder = document.getElementById('openConfigFolder');
@@ -179,6 +191,7 @@
     async function loadSettings() {
       const enabled = await window.electronAPI.getAutoLaunch();
       autoLaunchToggle.checked = enabled;
+      startMinimizedToggle.checked = await window.electronAPI.getStartMinimized();
 
       installPathValue.textContent = await window.electronAPI.getInstallPath();
       configPathValue.textContent = await window.electronAPI.getConfigPath();
@@ -186,6 +199,10 @@
 
     autoLaunchToggle.addEventListener('change', async () => {
       await window.electronAPI.setAutoLaunch(autoLaunchToggle.checked);
+    });
+
+    startMinimizedToggle.addEventListener('change', async () => {
+      await window.electronAPI.setStartMinimized(startMinimizedToggle.checked);
     });
 
     refreshPath.addEventListener('click', async () => {

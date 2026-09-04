@@ -28,7 +28,7 @@ function createSettingsWindow() {
 
   settingsWindow = new BrowserWindow({
     width: 460,
-    height: 340,
+    height: 430,
     resizable: false,
     minimizable: false,
     maximizable: false,
@@ -137,6 +137,12 @@ function createTray() {
 
 const configPath = path.join(app.getPath('userData'), 'config.json');
 
+function pastaSonsDoJogo(nomeJogo) {
+  const base = path.join(app.getPath('userData'), 'sons-customizados', nomeJogo);
+  fs.mkdirSync(base, { recursive: true });
+  return base;
+}
+
 function lerConfig() {
   try {
     return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -150,6 +156,9 @@ function salvarConfig(config) {
 }
 
 function createWindow() {
+  const config = lerConfig();
+  const iniciarMinimizado = config.startMinimized === true;
+
   if (mainWindow) {
     mainWindow.focus();
     return;
@@ -181,13 +190,33 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
+    if (iniciarMinimizado) {
+      mainWindow.minimize();
+    } else {
+      mainWindow.show();
+    }
     // informa o estado inicial de maximização para a UI renderizada
     if (mainWindow.webContents) mainWindow.webContents.send('janela-maximizada', mainWindow.isMaximized());
   });
 
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL(URL_DO_APP);
+
+  // Permite que o Chromium reduza o trabalho do app remoto fora do primeiro plano.
+  // Ao restaurar, o throttling é desativado para a UI voltar imediatamente.
+  const atualizarDesempenhoDaJanela = (emSegundoPlano) => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.setBackgroundThrottling(emSegundoPlano);
+    }
+  };
+
+  mainWindow.on('minimize', () => atualizarDesempenhoDaJanela(true));
+  mainWindow.on('hide', () => atualizarDesempenhoDaJanela(true));
+  mainWindow.on('restore', () => atualizarDesempenhoDaJanela(false));
+  mainWindow.on('show', () => atualizarDesempenhoDaJanela(false));
+  mainWindow.on('blur', () => atualizarDesempenhoDaJanela(true));
+  mainWindow.on('focus', () => atualizarDesempenhoDaJanela(false));
+
   // After the page finishes loading, attempt to remove the edit badge if present
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.executeJavaScript(`
@@ -324,6 +353,7 @@ ipcMain.handle('abrir-jogo', async () => {
   try {
     const erro = await shell.openPath(caminhoJogo);
     if (erro) return { sucesso: false, mensagem: erro };
+    if (mainWindow && !mainWindow.isMinimized()) mainWindow.minimize();
     return { sucesso: true };
   } catch (erro) {
     return { sucesso: false, mensagem: erro.message };
@@ -353,6 +383,35 @@ ipcMain.handle('reconfigurar-jogo', async () => {
   return { sucesso: true };
 });
 
+ipcMain.handle('sons:salvar', async (_event, { nomeJogo, arquivoBuffer, extensao }) => {
+  const pasta = pastaSonsDoJogo(nomeJogo);
+  const nomeArquivo = `som-${Date.now()}.${extensao}`;
+  const caminhoCompleto = path.join(pasta, nomeArquivo);
+
+  fs.writeFileSync(caminhoCompleto, Buffer.from(arquivoBuffer));
+
+  return { ok: true, nomeArquivo, caminho: caminhoCompleto };
+});
+
+ipcMain.handle('sons:listar', async (_event, { nomeJogo }) => {
+  const pasta = pastaSonsDoJogo(nomeJogo);
+  const arquivos = fs.readdirSync(pasta);
+  return arquivos.map((nome) => ({
+    nome,
+    caminho: path.join(pasta, nome),
+  }));
+});
+
+ipcMain.handle('sons:remover', async (_event, { nomeJogo, nomeArquivo }) => {
+  const pasta = pastaSonsDoJogo(nomeJogo);
+  const caminho = path.join(pasta, nomeArquivo);
+  if (fs.existsSync(caminho)) {
+    fs.unlinkSync(caminho);
+    return { ok: true };
+  }
+  return { ok: false, motivo: 'arquivo não encontrado' };
+});
+
 ipcMain.handle('abrir-config', () => {
   createSettingsWindow();
   return { sucesso: true };
@@ -367,6 +426,17 @@ ipcMain.handle('set-auto-launch', (_event, enabled) => {
   setAutoLaunch(Boolean(enabled));
   const config = lerConfig();
   config.autoLaunch = Boolean(enabled);
+  salvarConfig(config);
+  return { sucesso: true };
+});
+
+ipcMain.handle('get-start-minimized', () => {
+  return lerConfig().startMinimized === true;
+});
+
+ipcMain.handle('set-start-minimized', (_event, enabled) => {
+  const config = lerConfig();
+  config.startMinimized = Boolean(enabled);
   salvarConfig(config);
   return { sucesso: true };
 });
