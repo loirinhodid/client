@@ -40,7 +40,7 @@
           ]
         }
       ],
-      "icon": "build/n.ico"
+      "icon": "assets/n.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -48,9 +48,9 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "artifactName": "RoverClient-Setup-${version}.exe",
-      "installerIcon": "build/n.ico",
-      "uninstallerIcon": "build/n.ico",
-      "installerHeaderIcon": "build/n.ico"
+      "installerIcon": "assets/n.ico",
+      "uninstallerIcon": "assets/n.ico",
+      "installerHeaderIcon": "assets/n.ico"
     },
     "publish": [
       {
