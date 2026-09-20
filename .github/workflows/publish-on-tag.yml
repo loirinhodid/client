@@ -24,5 +24,5 @@ jobs:
 
       - name: Publish with electron-builder
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         run: npm run publish
