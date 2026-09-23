@@ -3,7 +3,7 @@
   "version": "1.0.10",
   "description": "Rover Client: cliente Electron que carrega um app remoto e dá acesso ao sistema local para abrir o jogo",
   "author": "Sycorax",
-  "main": "main.js",
+  "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
     "build-icon": "node scripts/generate-icon.js",
@@ -40,7 +40,7 @@
           ]
         }
       ],
-      "icon": "assets/n.ico"
+      "icon": "public/assets/n.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -48,9 +48,9 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "artifactName": "RoverClient-Setup-${version}.exe",
-      "installerIcon": "assets/n.ico",
-      "uninstallerIcon": "assets/n.ico",
-      "installerHeaderIcon": "assets/n.ico"
+      "installerIcon": "public/assets/n.ico",
+      "uninstallerIcon": "public/assets/n.ico",
+      "installerHeaderIcon": "public/assets/n.ico"
     },
     "publish": [
       {

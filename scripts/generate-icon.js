@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const pngToIco = require('png-to-ico');
 
-const pngPath = path.join(__dirname, '..', 'assets', 'n.png');
-const icoPath = path.join(__dirname, '..', 'assets', 'n.ico');
+const pngPath = path.join(__dirname, '..', 'public', 'assets', 'n.png');
+const icoPath = path.join(__dirname, '..', 'public', 'assets', 'n.ico');
 
 if (!fs.existsSync(pngPath)) {
   console.error('Arquivo de ícone não encontrado:', pngPath);
