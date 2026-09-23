@@ -1,5 +1,17 @@
 # Rover Client
 
+## Estrutura do projeto
+
+- `src/main/` - processo principal do Electron e handlers IPC.
+- `src/preload/` - APIs seguras expostas para a aplicação remota.
+- `src/renderer/` - janelas HTML locais do aplicativo.
+- `public/assets/` - ícones e imagens distribuídos com o aplicativo.
+- `scripts/` - automações de ícone, diagnóstico e release.
+- `.github/workflows/` - automação de publicação.
+
+Não foi criada uma pasta `CRC` porque o projeto não possui arquivos ou fluxo
+que pertençam a essa categoria.
+
 Rover Client é um cliente Electron que carrega um app remoto (`important-nexus-launch-pad.base44.app`)
 e dá acesso ao sistema local para abrir o jogo/pasta no seu PC.
 
@@ -44,11 +56,11 @@ Coisas que já vêm prontas:
 ## Por que é seguro
 
 A janela carrega a página do Base44 (que não é seu código, é hospedado por eles),
-então o `preload.js` só expõe essas 3 funções específicas via `contextBridge` —
+então o `src/preload/preload.js` só expõe essas funções via `contextBridge` —
 `nodeIntegration` fica desligado e `contextIsolation` ligado. Isso significa que
 mesmo que algo estranho rode dentro da página, não tem acesso livre ao sistema
 de arquivos nem consegue rodar comandos arbitrários — só o que foi liberado
-aqui no `main.js`.
+aqui no `src/main/main.js`.
 
 ## Gerar um .exe pra não precisar rodar pelo terminal (opcional, depois)
 
@@ -61,7 +73,7 @@ Passos básicos:
    ```bash
    npm install
    ```
-2. Gere o ícone `.ico` a partir do `assets/logo.svg`:
+2. Gere o ícone `.ico` a partir de `public/assets/n.png`:
    ```bash
    npm run build-icon
    ```
@@ -121,7 +133,7 @@ workflow de CI para incrementar a versão e publicar automaticamente.
 ## Controle da Janela (para o site remoto)
 
 Se a equipe do site quiser controlar a janela do launcher (minimizar, maximizar, fechar)
-há uma API segura exposta pela `preload.js` que o site pode usar quando estiver
+há uma API segura exposta pelo `src/preload/preload.js` que o site pode usar quando estiver
 rodando dentro do app Electron.
 
 Exemplos (usar apenas quando `window.janelaAPI` existir):

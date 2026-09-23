@@ -10,6 +10,11 @@ const URL_DO_APP = 'https://important-nexus-launch-pad.base44.app';
 let mainWindow = null;
 let settingsWindow = null;
 let tray = null;
+const projectRoot = path.join(__dirname, '..', '..');
+const preloadPath = path.join(projectRoot, 'src', 'preload', 'preload.js');
+const rendererPath = path.join(projectRoot, 'src', 'renderer');
+const iconPath = path.join(projectRoot, 'public', 'assets', 'n.ico');
+
 let isQuitting = false;
 
 function setAutoLaunch(enabled) {
@@ -28,21 +33,20 @@ function createSettingsWindow() {
 
   settingsWindow = new BrowserWindow({
     width: 460,
-    height: 430,
     resizable: false,
     minimizable: false,
     maximizable: false,
     autoHideMenuBar: true,
     title: 'Rover Client — Configurações locais',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
     }
   });
 
-  settingsWindow.loadFile(path.join(__dirname, 'settings.html'));
+  settingsWindow.loadFile(path.join(rendererPath, 'settings.html'));
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
@@ -78,11 +82,10 @@ function createMenu() {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, 'assets', 'n.ico');
   let icon = nativeImage.createFromPath(iconPath);
   // Fallback se o .ico for inválido/ausente: tenta PNG e redimensiona
   if (icon.isEmpty()) {
-    const fallbackPath = path.join(__dirname, 'assets', 'logo.png');
+    const fallbackPath = path.join(projectRoot, 'public', 'assets', 'logo.png');
     log.warn('Ícone de bandeja inválido em', iconPath, '-- tentando fallback', fallbackPath);
     icon = nativeImage.createFromPath(fallbackPath);
     if (!icon.isEmpty()) icon = icon.resize({ width: 16, height: 16 });
@@ -180,9 +183,9 @@ function createWindow() {
     maximizable: true,
     resizable: true,
     autoHideMenuBar: true,
-    icon: path.join(__dirname, 'assets', 'n.ico'),
+    icon: iconPath,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -209,7 +212,7 @@ function createWindow() {
       mainWindow.webContents.setBackgroundThrottling(emSegundoPlano);
     }
   };
-
+    setAutoLaunch(true);
   mainWindow.on('minimize', () => atualizarDesempenhoDaJanela(true));
   mainWindow.on('hide', () => atualizarDesempenhoDaJanela(true));
   mainWindow.on('restore', () => atualizarDesempenhoDaJanela(false));
@@ -248,7 +251,6 @@ function createWindow() {
 
   // notifica mudanças de estado de maximização para a UI
   mainWindow.on('maximize', () => {
-    if (mainWindow && mainWindow.webContents) mainWindow.webContents.send('janela-maximizada', true);
   });
   mainWindow.on('unmaximize', () => {
     if (mainWindow && mainWindow.webContents) mainWindow.webContents.send('janela-maximizada', false);
@@ -346,7 +348,6 @@ ipcMain.handle('abrir-jogo', async () => {
     }
 
     caminhoJogo = resultado.filePaths[0];
-    config.caminhoJogo = caminhoJogo;
     salvarConfig(config);
   }
 
