@@ -12,6 +12,18 @@ function writePackage(pkgPath, data) {
   fs.writeFileSync(pkgPath, JSON.stringify(data, null, 2) + '\n');
 }
 
+function updateLockfile(pkgPath, version) {
+  const lockPath = path.join(path.dirname(pkgPath), 'package-lock.json');
+  if (!fs.existsSync(lockPath)) return;
+
+  const lockData = JSON.parse(fs.readFileSync(lockPath, 'utf-8'));
+  lockData.version = version;
+  if (lockData.packages && lockData.packages['']) {
+    lockData.packages[''].version = version;
+  }
+  fs.writeFileSync(lockPath, JSON.stringify(lockData, null, 2) + '\n');
+}
+
 function bumpVersion(version) {
   const parts = version.split('.').map(Number);
   if (parts.length !== 3 || parts.some(isNaN)) throw new Error('Invalid semver: ' + version);
@@ -25,6 +37,7 @@ async function main() {
   const newVersion = bumpVersion(oldVersion);
   data.version = newVersion;
   writePackage(pkgPath, data);
+  updateLockfile(pkgPath, newVersion);
   console.log(`Bumped version ${oldVersion} -> ${newVersion}`);
 
   // mudar cwd para a pasta onde está o package.json para que git encontre o arquivo
@@ -44,7 +57,7 @@ async function main() {
       // ignore config errors
     }
 
-    execSync('git add package.json', { stdio: 'inherit' });
+    execSync('git add package.json package-lock.json docs public src scripts', { stdio: 'inherit' });
     execSync(`git commit -m "chore(release): v${newVersion}"`, { stdio: 'inherit' });
   } catch (err) {
     console.warn('Git commit failed (maybe no changes or not a git repo or no initial commit):', err.message);
