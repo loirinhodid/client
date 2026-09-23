@@ -12,6 +12,9 @@
 Não foi criada uma pasta `CRC` porque o projeto não possui arquivos ou fluxo
 que pertençam a essa categoria.
 
+O instalador usa `public/assets/rover-installer-sidebar.png` como faixa lateral
+do NSIS. A arte original fica em `public/assets/rover-universe-banner.png`.
+
 Rover Client é um cliente Electron que carrega um app remoto (`important-nexus-launch-pad.base44.app`)
 e dá acesso ao sistema local para abrir o jogo/pasta no seu PC.
 
