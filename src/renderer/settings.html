@@ -114,6 +114,11 @@
       font-size: 12px;
       color: #9ca3af;
     }
+    .update-status {
+      margin-top: 10px;
+      color: #9ca3af;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -168,6 +173,15 @@
 
     <div class="row">
       <div>
+        <label>Atualizações</label>
+        <div class="hint">Procura uma atualização agora, mesmo que o app já esteja na última versão.</div>
+      </div>
+      <button id="forceUpdate">Atualizar agora</button>
+    </div>
+    <div id="updateStatus" class="update-status" role="status"></div>
+
+    <div class="row">
+      <div>
         <label>Recarregar informações</label>
         <div class="hint">Atualiza os caminhos exibidos sem precisar fechar o app.</div>
       </div>
@@ -187,6 +201,8 @@
     const openConfigFolder = document.getElementById('openConfigFolder');
     const installPathValue = document.getElementById('installPathValue');
     const configPathValue = document.getElementById('configPathValue');
+    const forceUpdate = document.getElementById('forceUpdate');
+    const updateStatus = document.getElementById('updateStatus');
 
     async function loadSettings() {
       const enabled = await window.electronAPI.getAutoLaunch();
@@ -216,6 +232,22 @@
 
     openConfigFolder.addEventListener('click', async () => {
       await window.electronAPI.openConfigFolder();
+    });
+
+    forceUpdate.addEventListener('click', async () => {
+      forceUpdate.disabled = true;
+      updateStatus.textContent = 'Verificando atualizações...';
+      const result = await window.electronAPI.forcarAtualizacao();
+      if (result.status === 'available') {
+        updateStatus.textContent = `Atualização ${result.version} encontrada. O app será reiniciado ao terminar o download.`;
+      } else if (result.status === 'up-to-date') {
+        updateStatus.textContent = 'O Rover Client já está na última versão.';
+      } else if (result.status === 'offline') {
+        updateStatus.textContent = 'Sem conexão com a internet.';
+      } else {
+        updateStatus.textContent = 'Não foi possível verificar atualizações agora.';
+      }
+      forceUpdate.disabled = false;
     });
 
     loadSettings();

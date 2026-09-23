@@ -121,6 +121,21 @@ Notas importantes:
   com um agendador que usa backoff exponencial (inicia em 5 minutos e pode
   aumentar até 4 horas em caso de falhas) — isso mantém o equilíbrio entre
   latência (receber atualizações rapidamente) e carga no servidor.
+- O menu da bandeja e a janela de Preferências têm a opção **Atualizar agora**.
+  Ela faz uma nova consulta mesmo depois de uma checagem que informou que o app
+  já está atualizado; se houver uma versão nova, o download e a instalação
+  continuam pelo fluxo normal do updater.
+- Sem internet, o app não carrega o aplicativo remoto: mostra uma tela local
+  com o logotipo e o nome Rover Client. Essa tela oferece uma nova tentativa
+  quando a conexão voltar.
+
+### Autorização da publicação
+
+A chave de autenticação não é armazenada no aplicativo. Para publicar pelo
+GitHub Actions, configure o segredo `PUBLISH_TOKEN` no repositório; o workflow
+o fornece como `GH_TOKEN` ao `electron-builder`. Antes de publicar uma nova
+release, incremente `version` em `package.json` e mantenha o mesmo valor no
+`package-lock.json`, pois o updater só aceita versões maiores.
 
 Precisa atualizar manualmente o sistema de versão?
 - Sim: para que o `electron-updater` detecte uma nova versão você precisa

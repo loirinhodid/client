@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Menu, Tray, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu, Tray, nativeImage, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const log = require('electron-log');
@@ -14,8 +14,54 @@ const projectRoot = path.join(__dirname, '..', '..');
 const preloadPath = path.join(projectRoot, 'src', 'preload', 'preload.js');
 const rendererPath = path.join(projectRoot, 'src', 'renderer');
 const iconPath = path.join(projectRoot, 'public', 'assets', 'n.ico');
+const offlinePagePath = path.join(rendererPath, 'offline.html');
 
 let isQuitting = false;
+
+function carregarTelaOffline() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.loadFile(offlinePagePath);
+  }
+}
+
+async function forcarAtualizacao(exibirResultado = true) {
+  if (!net.isOnline()) {
+    if (exibirResultado) {
+      await dialog.showMessageBox({
+        type: 'warning',
+        title: 'Sem conexão',
+        message: 'Não é possível procurar atualizações sem internet.'
+      });
+    }
+    return { status: 'offline' };
+  }
+
+  try {
+    const resultado = await autoUpdater.checkForUpdates();
+    const info = resultado && resultado.updateInfo;
+    if (!resultado || resultado.isUpdateAvailable === false) {
+      if (exibirResultado) {
+        await dialog.showMessageBox({
+          type: 'info',
+          title: 'Rover Client',
+          message: 'O Rover Client já está na última versão.'
+        });
+      }
+      return { status: 'up-to-date', version: app.getVersion() };
+    }
+    return { status: 'available', version: info && info.version };
+  } catch (error) {
+    log.error('Erro ao forçar atualização:', error);
+    if (exibirResultado) {
+      await dialog.showMessageBox({
+        type: 'error',
+        title: 'Falha na atualização',
+        message: 'Não foi possível verificar atualizações agora.'
+      });
+    }
+    return { status: 'error', message: error.message };
+  }
+}
 
 function setAutoLaunch(enabled) {
   app.setLoginItemSettings({
@@ -107,6 +153,10 @@ function createTray() {
     {
       label: 'Configurações do Rover Client',
       click: () => createSettingsWindow()
+    },
+    {
+      label: 'Forçar atualização',
+      click: () => forcarAtualizacao()
     },
     {
       label: 'Minimizar para a bandeja ao fechar',
@@ -203,7 +253,15 @@ function createWindow() {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL(URL_DO_APP);
+  if (net.isOnline()) {
+    mainWindow.loadURL(URL_DO_APP);
+  } else {
+    carregarTelaOffline();
+  }
+
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode) => {
+    if (!net.isOnline() && errorCode !== -3) carregarTelaOffline();
+  });
 
   // Permite que o Chromium reduza o trabalho do app remoto fora do primeiro plano.
   // Ao restaurar, o throttling é desativado para a UI voltar imediatamente.
@@ -462,6 +520,14 @@ ipcMain.handle('open-install-folder', () => {
 ipcMain.handle('open-config-folder', () => {
   shell.openPath(path.dirname(configPath));
   return { sucesso: true };
+});
+
+ipcMain.handle('forcar-atualizacao', () => forcarAtualizacao());
+
+ipcMain.handle('tentar-reconectar', () => {
+  if (!net.isOnline()) return { online: false };
+  if (mainWindow) mainWindow.loadURL(URL_DO_APP);
+  return { online: true };
 });
 
 // Handlers para controles de janela expostos no `preload.js` (window.janelaAPI)

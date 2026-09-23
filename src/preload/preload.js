@@ -21,6 +21,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getConfigPath: () => ipcRenderer.invoke('get-config-path'),
   openInstallFolder: () => ipcRenderer.invoke('open-install-folder'),
   openConfigFolder: () => ipcRenderer.invoke('open-config-folder'),
+  forcarAtualizacao: () => ipcRenderer.invoke('forcar-atualizacao'),
+  tentarReconectar: () => ipcRenderer.invoke('tentar-reconectar'),
   disponivel: true
 });
 
