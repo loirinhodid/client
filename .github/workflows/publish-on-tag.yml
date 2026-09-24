@@ -22,7 +22,25 @@ jobs:
       - name: Generate icon
         run: npm run build-icon
 
+      - name: Remove existing release for this tag
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        shell: pwsh
+        run: |
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}"
+          if ($LASTEXITCODE -eq 0) {
+            gh release delete "${{ github.ref_name }}" --repo "${{ github.repository }}" --yes
+          }
+
       - name: Publish with electron-builder
         env:
           GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         run: npm run publish
+
+      - name: Add build revision to update manifest
+        run: node scripts/add-update-revision.js
+
+      - name: Update manifest on GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" dist/latest.yml --clobber

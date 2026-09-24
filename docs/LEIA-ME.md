@@ -128,6 +128,10 @@ Notas importantes:
 - Sem internet, o app não carrega o aplicativo remoto: mostra uma tela local
   com o logotipo e o nome Rover Client. Essa tela oferece uma nova tentativa
   quando a conexão voltar.
+- Correções pequenas podem ser publicadas sem mudar a versão: incremente
+  `buildRevision` em `package.json` e publique novamente a mesma tag. O workflow
+  grava essa revisão no `latest.yml`, e o app aceita a atualização quando a
+  revisão remota for maior que a instalada.
 
 ### Autorização da publicação
 
