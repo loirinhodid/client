@@ -15,6 +15,7 @@ const preloadPath = path.join(projectRoot, 'src', 'preload', 'preload.js');
 const rendererPath = path.join(projectRoot, 'src', 'renderer');
 const iconPath = path.join(projectRoot, 'public', 'assets', 'n.ico');
 const offlinePagePath = path.join(rendererPath, 'offline.html');
+const buildRevision = Number(require(path.join(projectRoot, 'package.json')).buildRevision || 0);
 
 let isQuitting = false;
 
@@ -319,6 +320,20 @@ function setupAutoUpdate() {
   autoUpdater.logger = log;
   autoUpdater.logger.transports.file.level = 'info';
   autoUpdater.autoDownload = true;
+
+  const isUpdateAvailableByVersion = autoUpdater.isUpdateAvailable.bind(autoUpdater);
+  autoUpdater.isUpdateAvailable = async (updateInfo) => {
+    if (updateInfo.version === app.getVersion()) {
+      const remoteRevision = Number(updateInfo.buildRevision || 0);
+      const hasSameVersionFix = remoteRevision > buildRevision;
+      if (hasSameVersionFix) {
+        log.info(`Correção da mesma versão disponível: revisão ${remoteRevision}`);
+      }
+      return hasSameVersionFix;
+    }
+
+    return isUpdateAvailableByVersion(updateInfo);
+  };
 
   autoUpdater.on('checking-for-update', () => log.info('Procurando atualizações...'));
   autoUpdater.on('update-available', (info) => log.info('Atualização disponível:', info));
