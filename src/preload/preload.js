@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openConfigFolder: () => ipcRenderer.invoke('open-config-folder'),
   forcarAtualizacao: () => ipcRenderer.invoke('forcar-atualizacao'),
   tentarReconectar: () => ipcRenderer.invoke('tentar-reconectar'),
+  sair: () => ipcRenderer.send('janela-sair'),
   disponivel: true
 });
 

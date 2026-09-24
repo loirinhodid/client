@@ -28,6 +28,7 @@
     img { width: 112px; height: 112px; object-fit: contain; margin-bottom: 20px; }
     h1 { margin: 0 0 12px; font-size: 24px; }
     p { margin: 0 0 24px; color: #cbd5e1; line-height: 1.5; }
+    .actions { display: flex; justify-content: center; gap: 10px; }
     button {
       border: 0;
       border-radius: 8px;
@@ -38,20 +39,32 @@
       cursor: pointer;
     }
     button:hover { background: #7dd3fc; }
+    #exit { color: #e2e8f0; background: #334155; }
+    #exit:hover { background: #475569; }
   </style>
 </head>
 <body>
   <main class="panel">
-    <img src="../../public/assets/logo.svg" alt="Logotipo do Rover Client" />
+    <img src="../../public/assets/n.png" alt="Ícone do Rover Client" />
     <h1>Rover Client</h1>
-    <p>Não foi possível iniciar o aplicativo porque não há conexão com a internet.</p>
-    <button id="retry" type="button">Tentar novamente</button>
+    <p>Conecte-se à internet para continuar.</p>
+    <div class="actions">
+      <button id="retry" type="button">Tentar novamente</button>
+      <button id="exit" type="button">Sair</button>
+    </div>
   </main>
   <script>
-    document.getElementById('retry').addEventListener('click', async () => {
+    const retryButton = document.getElementById('retry');
+
+    async function tentarReconectar() {
       const result = await window.electronAPI.tentarReconectar();
-      if (!result.online) alert('Ainda não há conexão com a internet.');
-    });
+      if (result.online) clearInterval(retryInterval);
+    }
+
+    retryButton.addEventListener('click', tentarReconectar);
+    document.getElementById('exit').addEventListener('click', () => window.electronAPI.sair());
+
+    const retryInterval = setInterval(tentarReconectar, 3000);
   </script>
 </body>
 </html>
