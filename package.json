@@ -58,7 +58,7 @@
         "provider": "github",
         "owner": "loirinhodid",
         "repo": "client",
-        "releaseType": "draft"
+        "releaseType": "release"
       }
     ]
   }
