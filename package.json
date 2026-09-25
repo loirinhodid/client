@@ -19,7 +19,7 @@
   "devDependencies": {
     "@resvg/resvg-js": "^2.1.0",
     "electron": "^31.7.7",
-    "electron-builder": "^24.9.0",
+    "electron-builder": "^26.15.3",
     "js-yaml": "^5.4.2",
     "png-to-ico": "^1.0.0"
   },
