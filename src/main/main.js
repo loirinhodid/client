@@ -16,6 +16,7 @@ const rendererPath = path.join(projectRoot, 'src', 'renderer');
 const iconPath = path.join(projectRoot, 'public', 'assets', 'n.ico');
 const offlinePagePath = path.join(rendererPath, 'offline.html');
 const serviceUnavailablePagePath = path.join(rendererPath, 'service-unavailable.html');
+const discontinuedPagePath = path.join(rendererPath, 'discontinued.html');
 const buildRevision = Number(require(path.join(projectRoot, 'package.json')).buildRevision || 0);
 
 let isQuitting = false;
@@ -29,6 +30,12 @@ function carregarTelaOffline() {
 function carregarAvisoServicoIndisponivel() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.loadFile(serviceUnavailablePagePath);
+  }
+}
+
+function carregarAvisoDescontinuado() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.loadFile(discontinuedPagePath);
   }
 }
 
@@ -288,14 +295,32 @@ function createWindow() {
   // Detecta a página de indisponibilidade do Base44, que carrega como uma resposta válida.
   mainWindow.webContents.on('did-finish-load', async () => {
     if (mainWindow.webContents.getURL().startsWith(URL_DO_APP)) {
-      const base44Indisponivel = await mainWindow.webContents.executeJavaScript(`
-        (document.body?.innerText || '').toLowerCase().includes('ainda não está disponível');
+      const remoteStatus = await mainWindow.webContents.executeJavaScript(`
+        (() => {
+          const text = (document.body?.innerText || document.documentElement?.innerText || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase();
+
+          const semAcentos = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+          return {
+            discontinued: /(descontinuado|descontinuada|encerrado|encerrada|nao esta mais disponivel|nao está mais disponível|servico encerrado|serviço encerrado|aplicativo encerrado)/.test(semAcentos),
+            unavailable: /(ainda nao esta disponivel|ainda não está disponível|temporariamente indisponivel|temporariamente indisponível|servico indisponivel|serviço indisponível|indisponivel|indisponível)/.test(semAcentos)
+          };
+        })();
       `).catch((error) => {
         log.warn('Não foi possível verificar o estado da página remota:', error);
-        return false;
+        return { discontinued: false, unavailable: false };
       });
 
-      if (base44Indisponivel) {
+      if (remoteStatus.discontinued) {
+        log.info('Base44 informa que o serviço foi descontinuado.');
+        carregarAvisoDescontinuado();
+        return;
+      }
+
+      if (remoteStatus.unavailable) {
         log.info('Base44 informa que o aplicativo ainda não está disponível.');
         carregarAvisoServicoIndisponivel();
         return;
