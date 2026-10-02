@@ -15,6 +15,7 @@ const preloadPath = path.join(projectRoot, 'src', 'preload', 'preload.js');
 const rendererPath = path.join(projectRoot, 'src', 'renderer');
 const iconPath = path.join(projectRoot, 'public', 'assets', 'n.ico');
 const offlinePagePath = path.join(rendererPath, 'offline.html');
+const serviceUnavailablePagePath = path.join(rendererPath, 'service-unavailable.html');
 const buildRevision = Number(require(path.join(projectRoot, 'package.json')).buildRevision || 0);
 
 let isQuitting = false;
@@ -22,6 +23,12 @@ let isQuitting = false;
 function carregarTelaOffline() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.loadFile(offlinePagePath);
+  }
+}
+
+function carregarAvisoServicoIndisponivel() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.loadFile(serviceUnavailablePagePath);
   }
 }
 
@@ -254,15 +261,14 @@ function createWindow() {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  if (net.isOnline()) {
-    mainWindow.loadURL(URL_DO_APP);
-  } else {
-    carregarTelaOffline();
-  }
-
-  mainWindow.webContents.on('did-fail-load', (_event, errorCode) => {
-    if (!net.isOnline() && errorCode !== -3) carregarTelaOffline();
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, _description, validatedURL, isMainFrame) => {
+    if (errorCode === -3 || !isMainFrame || !validatedURL.startsWith(URL_DO_APP)) return;
+    if (net.isOnline()) carregarAvisoServicoIndisponivel();
+    else carregarTelaOffline();
   });
+
+  if (net.isOnline()) mainWindow.loadURL(URL_DO_APP);
+  else carregarTelaOffline();
 
   // Permite que o Chromium reduza o trabalho do app remoto fora do primeiro plano.
   // Ao restaurar, o throttling é desativado para a UI voltar imediatamente.
