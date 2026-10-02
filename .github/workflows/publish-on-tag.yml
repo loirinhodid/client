@@ -27,10 +27,11 @@ jobs:
           GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
         shell: pwsh
         run: |
-          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}"
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" 2>$null
           if ($LASTEXITCODE -eq 0) {
             gh release delete "${{ github.ref_name }}" --repo "${{ github.repository }}" --yes
           }
+          exit 0
 
       - name: Publish with electron-builder
         env:
