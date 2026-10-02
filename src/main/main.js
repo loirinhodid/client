@@ -285,8 +285,24 @@ function createWindow() {
   mainWindow.on('blur', () => atualizarDesempenhoDaJanela(true));
   mainWindow.on('focus', () => atualizarDesempenhoDaJanela(false));
 
-  // After the page finishes loading, attempt to remove the edit badge if present
-  mainWindow.webContents.on('did-finish-load', () => {
+  // Detecta a página de indisponibilidade do Base44, que carrega como uma resposta válida.
+  mainWindow.webContents.on('did-finish-load', async () => {
+    if (mainWindow.webContents.getURL().startsWith(URL_DO_APP)) {
+      const base44Indisponivel = await mainWindow.webContents.executeJavaScript(`
+        (document.body?.innerText || '').toLowerCase().includes('ainda não está disponível');
+      `).catch((error) => {
+        log.warn('Não foi possível verificar o estado da página remota:', error);
+        return false;
+      });
+
+      if (base44Indisponivel) {
+        log.info('Base44 informa que o aplicativo ainda não está disponível.');
+        carregarAvisoServicoIndisponivel();
+        return;
+      }
+    }
+
+    // Remove o badge de edição do Base44, se presente.
     mainWindow.webContents.executeJavaScript(`
       (function () {
         const closeBtn = document.getElementById('badge-close');
